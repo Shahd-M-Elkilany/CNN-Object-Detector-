@@ -1,8 +1,11 @@
 
-# 🧠 CNN Object Detector
+# ✈️ CNN Object Detection (Airplane Detector)
 
-A **Convolutional Neural Network (CNN) based Object Detection project** built using Python, TensorFlow/Keras, and OpenCV.  
-This repository contains two main Jupyter notebooks — one for **training** the model and another for **testing/deployment**.
+This repository contains a **Convolutional Neural Network (CNN)**–based object detector
+that detects airplanes from images. The project includes:
+
+- A full training pipeline (data preprocessing → cropping → CNN training → saving model)
+- A deployment/testing pipeline (load trained model → detect airplanes → draw detections)
 
 ---
 
@@ -10,134 +13,194 @@ This repository contains two main Jupyter notebooks — one for **training** the
 
 ```
 
-cnn-object-detector/
+📁 root
 │
-├── notebooks/
-│   ├── Object_Detector_CNN_Based.ipynb    # Main training notebook
-│   └── Final_Testing.ipynb                # Testing / inference / deployment notebook
+├── Object_Detector_CNN_Based.ipynb     # Training + model building
+├── Final_Testing.ipynb                 # Inference / deployment script
+└── artifacts/                          # Generated automatically (saved model, logs, images)
+
+```
+
+---
+
+## 🧠 Model Architecture (from code)
+
+The CNN classifier defined in `Object_Detector_CNN_Based.ipynb`:
+
+```
+
+Input (CROP_SIZE x CROP_SIZE x 3)
 │
-├── assets/
-│   └── architecture_diagram.png           # Simple model architecture visual
+├── Conv2D (32 filters, kernel 3x3, activation='relu')
+├── MaxPooling2D (pool size 2)
 │
-├── requirements.txt                        # Auto-generated dependency list
-├── LICENSE                                 # MIT license
-└── .gitignore
+├── Conv2D (64 filters, kernel 3x3, activation='relu')
+├── MaxPooling2D (pool size 2)
+│
+├── Conv2D (128 filters, kernel 3x3, activation='relu')
+├── GlobalAveragePooling2D
+├── Dropout (0.40)
+│
+└── Dense (num_classes, activation='softmax')
+
+```
+
+The model is compiled with:
+
+```
+
+optimizer = Adam()
+loss = SparseCategoricalCrossentropy()
+metrics = ['accuracy']
 
 ````
 
 ---
 
-## 🚀 Features
+## 🛠️ Training Pipeline (from notebook)
 
-- End-to-end object detection pipeline using CNN
-- Data preprocessing and augmentation support
-- Training, validation, and testing workflows
-- Model saving + loading included
-- Deployment-ready testing notebook (can integrate Gradio / Streamlit if needed)
-- Fully reproducible environment using **requirements.txt**
+From `Object_Detector_CNN_Based.ipynb`:
 
----
+1. Preprocess and crop dataset images into fixed-size patches (`CROP_SIZE × CROP_SIZE`)
+2. Build CNN classifier using TensorFlow/Keras
+3. Compute class weights using:
 
-## 🔧 Installation & Setup
-
-Clone the repository:
-
-```bash
-git clone https://github.com/<your-username>/cnn-object-detector.git
-cd cnn-object-detector
+```python
+from sklearn.utils import class_weight
+cls_weights = class_weight.compute_class_weight('balanced', ...)
 ````
 
-Create a virtual environment:
+4. Train with callbacks:
 
-```bash
-python -m venv .venv
+```python
+ModelCheckpoint(save_best_only=True, monitor="val_loss")
+EarlyStopping(patience=5, restore_best_weights=True)
 ```
 
-Activate it:
+5. Save trained model to:
 
-**Windows**
-
-```bash
-.venv\Scripts\activate
+```
+/artifacts/cnn_detector_best.h5
 ```
 
-**macOS / Linux**
+The notebook also plots **loss curve** and **accuracy curve** during training:
 
-```bash
-source .venv/bin/activate
+```python
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
 ```
 
-Install the required dependencies:
+This is automatically generated inside the notebook (no user action needed).
 
-```bash
-pip install -r requirements.txt
+---
+
+## 🚀 Deployment / Inference Pipeline
+
+From `Final_Testing.ipynb`:
+
+1. Load trained model
+
+```python
+from tensorflow.keras.models import load_model
+cnn_model = load_model("/content/drive/MyDrive/airplane_cnn_model.keras")
+print("✅ Model loaded successfully from Drive!")
+```
+
+2. Run detection on **a single image**
+
+```python
+img_rgb, detections = detect_airplanes(test_img_path, cnn_model, conf_thresh=0.4)
+final_detections = non_max_suppression(detections, iou_thresh=0.2)
+
+print(f"✅ Single image: {len(final_detections)} airplanes detected")
+```
+
+3. Run **batch detection** on a folder
+
+```python
+batch_detect(test_folder, cnn_model, conf_thresh=0.4, iou_thresh=0.2, limit=5, save_dir="/content/detection_results")
+```
+
+The script produces:
+
+* Cropped detection previews
+* Final output images stored under `/content/detection_results`
+
+---
+
+## 🔍 Object Detection Strategy (as implemented)
+
+* Slide a fixed-size crop over the input image
+* Run classifier on each crop
+* Keep predictions above confidence threshold (`conf_thresh = 0.4`)
+* Apply **Non-Max Suppression (NMS)** (`iou_thresh = 0.2`)
+* Draw bounding box + label on final image
+
+---
+
+## ✅ Outputs Generated by the Project
+
+The project automatically generates:
+
+| Output                                       | Location                         |
+| -------------------------------------------- | -------------------------------- |
+| Trained model                                | `artifacts/cnn_detector_best.h5` |
+| Intermediate cropped chips                   | `artifacts/crops/`               |
+| Final inference images (with bounding boxes) | `detection_results/`             |
+
+When running inference, the console prints:
+
+```
+✅ Model loaded successfully from Drive!
+✅ Single image: X airplanes detected
 ```
 
 ---
 
-## ▶️ How to Run
+## 🧪 Requirements
 
-### 1️⃣ Training the model
-
-Open the training notebook:
+(These imports appear in the code)
 
 ```
-notebooks/Object_Detector_CNN_Based.ipynb
-```
-
-* Load dataset
-* Run all cells to train the CNN model
-* The trained model gets saved automatically
-
-### 2️⃣ Testing / Deployment
-
-Open the testing notebook:
-
-```
-notebooks/Final_Testing.ipynb
-```
-
-* Loads the saved model
-* Performs prediction & visualization
-* (Optional) Deploy model via Gradio UI
-
----
-
-## 🧩 Model Architecture (Simple Visual)
-
-<p align="center">
-  <img src="assets/architecture_diagram.png" width="550"/>
-</p>
-
-> Replace this with your own diagram later (ex: model.summary plot).
-
----
-
-## 🖼️ Results
-
-You can upload screenshots later (training curves, example predictions).
-
-Example block:
-
-```
-✅ Model Accuracy: XX%
-📊 Loss stabilized after epoch X
-📦 Predictions match expected labels with high confidence
+tensorflow
+numpy
+opencv-python
+matplotlib
+scikit-learn
 ```
 
 ---
 
-## 🪪 License
+## 🏁 How to run
 
-This project is licensed under the **MIT License** — free to use, modify and distribute.
+### Training:
+
+Open:
+
+```
+Object_Detector_CNN_Based.ipynb
+```
+
+Run all the cells.
+
+### Testing / Inference:
+
+Open:
+
+```
+Final_Testing.ipynb
+```
+
+Update image path → run all cells.
 
 ---
 
-## 🤝 Contributing
+## ⭐ Contribution
 
-Feel free to fork the repo and submit pull requests.
+Pull requests are welcome.
 
----
+If you find this helpful, give the repo a ⭐ on GitHub!
 
-
-
+```
