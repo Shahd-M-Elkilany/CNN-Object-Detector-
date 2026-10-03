@@ -1,206 +1,69 @@
+# Airplane Detection in Aerial Imagery with a Sliding-Window CNN
 
-# ✈️ CNN Object Detection (Airplane Detector)
+A from-scratch baseline for detecting airplanes in overhead imagery. A small
+CNN classifies 64×64 crops as airplane or background, the classifier is slid
+across the full image, and non-maximum suppression merges the overlapping
+hits into final boxes.
 
-This repository contains a **Convolutional Neural Network (CNN)**–based object detector
-that detects airplanes from images. The project includes:
+![Detections on an aerial image of parked aircraft, before and after non-maximum suppression](assets/detections_planes.png)
 
-- A full training pipeline (data preprocessing → cropping → CNN training → saving model)
-- A deployment/testing pipeline (load trained model → detect airplanes → draw detections)
+*Left: every window scored above 0.4. Right: after non-maximum suppression.*
 
----
+## Approach
 
-## 📂 Repository Structure
+| Stage | Details |
+| --- | --- |
+| Data | 729 annotated aerial images, 2,906 airplane bounding boxes |
+| Training crops | 64×64 windows at stride 32; positive when IoU with a ground-truth box ≥ 0.5 |
+| Class balance | 575 positive and 36,799 negative crops, sampled down to 15 negatives per positive (9,200 crops) and trained with class weights |
+| Split | 80% train, 20% validation, stratified, seed 42 |
+| Model | 3 convolution blocks (32, 64, 128 filters), global average pooling, dropout 0.4, dense 128, sigmoid output; 109,889 parameters |
+| Training | Adam, binary cross-entropy, up to 15 epochs with early stopping on validation loss |
+| Inference | Sliding window, score threshold 0.4, non-maximum suppression |
 
+## Results
+
+Figures printed by `Object_Detector_CNN_Based.ipynb`:
+
+| Evaluation | Precision | Recall | F1 |
+| --- | --- | --- | --- |
+| Crop classification, validation set (1,840 crops, threshold 0.4) | 0.21 | 0.99 | 0.34 |
+| Box detection on 100 images (IoU ≥ 0.5) | 0.11 | 0.14 | 0.13 |
+
+The classifier finds almost every airplane crop but raises many false alarms,
+and box-level detection is weak. This is a baseline, and the reasons are
+mostly structural:
+
+- **Fixed 64×64 boxes.** Predicted boxes cannot change size or shape, so
+  larger or smaller aircraft rarely reach IoU 0.5 with the ground truth even
+  when the model fires on them.
+- **Coarse stride.** A stride of 32 pixels means a window is often not
+  centred on the aircraft.
+- **No hard-negative mining.** Negatives are sampled at random, so runway
+  markings and buildings are under-represented in training.
+- **The 100 evaluation images are drawn from the same pool used for training
+  crops**, so the detection figures are not a clean held-out estimate.
+
+A detector with box regression (Faster R-CNN, YOLO) would address the first
+two points directly and is the natural next step.
+
+## Running it
+
+Both notebooks were written for Google Colab.
+
+1. `Object_Detector_CNN_Based.ipynb` builds the crop dataset, trains the
+   classifier and evaluates it. Set `IMG_DIR` and `ANN_DIR` to the image
+   folder and the per-image annotation CSVs.
+2. `Final_Testing.ipynb` loads a saved model, runs detection on single images
+   or a folder, and launches a small Gradio demo. Update the model path in
+   the first cell to wherever your trained model is saved.
+
+```bash
+pip install -r requirements.txt
 ```
 
-📁 root
-│
-├── Object_Detector_CNN_Based.ipynb     # Training + model building
-├── Final_Testing.ipynb                 # Inference / deployment script
-└── artifacts/                          # Generated automatically (saved model, logs, images)
+The dataset and trained weights are not included in this repository.
 
-```
+## License
 
----
-
-## 🧠 Model Architecture (from code)
-
-The CNN classifier defined in `Object_Detector_CNN_Based.ipynb`:
-
-```
-
-Input (CROP_SIZE x CROP_SIZE x 3)
-│
-├── Conv2D (32 filters, kernel 3x3, activation='relu')
-├── MaxPooling2D (pool size 2)
-│
-├── Conv2D (64 filters, kernel 3x3, activation='relu')
-├── MaxPooling2D (pool size 2)
-│
-├── Conv2D (128 filters, kernel 3x3, activation='relu')
-├── GlobalAveragePooling2D
-├── Dropout (0.40)
-│
-└── Dense (num_classes, activation='softmax')
-
-```
-
-The model is compiled with:
-
-```
-
-optimizer = Adam()
-loss = SparseCategoricalCrossentropy()
-metrics = ['accuracy']
-
-````
-
----
-
-## 🛠️ Training Pipeline (from notebook)
-
-From `Object_Detector_CNN_Based.ipynb`:
-
-1. Preprocess and crop dataset images into fixed-size patches (`CROP_SIZE × CROP_SIZE`)
-2. Build CNN classifier using TensorFlow/Keras
-3. Compute class weights using:
-
-```python
-from sklearn.utils import class_weight
-cls_weights = class_weight.compute_class_weight('balanced', ...)
-````
-
-4. Train with callbacks:
-
-```python
-ModelCheckpoint(save_best_only=True, monitor="val_loss")
-EarlyStopping(patience=5, restore_best_weights=True)
-```
-
-5. Save trained model to:
-
-```
-/artifacts/cnn_detector_best.h5
-```
-
-The notebook also plots **loss curve** and **accuracy curve** during training:
-
-```python
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
-plt.plot(history.history['accuracy'])
-plt.plot(history.history['val_accuracy'])
-```
-
-This is automatically generated inside the notebook (no user action needed).
-
----
-
-## 🚀 Deployment / Inference Pipeline
-
-From `Final_Testing.ipynb`:
-
-1. Load trained model
-
-```python
-from tensorflow.keras.models import load_model
-cnn_model = load_model("/content/drive/MyDrive/airplane_cnn_model.keras")
-print("✅ Model loaded successfully from Drive!")
-```
-
-2. Run detection on **a single image**
-
-```python
-img_rgb, detections = detect_airplanes(test_img_path, cnn_model, conf_thresh=0.4)
-final_detections = non_max_suppression(detections, iou_thresh=0.2)
-
-print(f"✅ Single image: {len(final_detections)} airplanes detected")
-```
-
-3. Run **batch detection** on a folder
-
-```python
-batch_detect(test_folder, cnn_model, conf_thresh=0.4, iou_thresh=0.2, limit=5, save_dir="/content/detection_results")
-```
-
-The script produces:
-
-* Cropped detection previews
-* Final output images stored under `/content/detection_results`
-
----
-
-## 🔍 Object Detection Strategy (as implemented)
-
-* Slide a fixed-size crop over the input image
-* Run classifier on each crop
-* Keep predictions above confidence threshold (`conf_thresh = 0.4`)
-* Apply **Non-Max Suppression (NMS)** (`iou_thresh = 0.2`)
-* Draw bounding box + label on final image
-
----
-
-## ✅ Outputs Generated by the Project
-
-The project automatically generates:
-
-| Output                                       | Location                         |
-| -------------------------------------------- | -------------------------------- |
-| Trained model                                | `artifacts/cnn_detector_best.h5` |
-| Intermediate cropped chips                   | `artifacts/crops/`               |
-| Final inference images (with bounding boxes) | `detection_results/`             |
-
-When running inference, the console prints:
-
-```
-✅ Model loaded successfully from Drive!
-✅ Single image: X airplanes detected
-```
-
----
-
-## 🧪 Requirements
-
-(These imports appear in the code)
-
-```
-tensorflow
-numpy
-opencv-python
-matplotlib
-scikit-learn
-```
-
----
-
-## 🏁 How to run
-
-### Training:
-
-Open:
-
-```
-Object_Detector_CNN_Based.ipynb
-```
-
-Run all the cells.
-
-### Testing / Inference:
-
-Open:
-
-```
-Final_Testing.ipynb
-```
-
-Update image path → run all cells.
-
----
-
-## ⭐ Contribution
-
-Pull requests are welcome.
-
-If you find this helpful, give the repo a ⭐ on GitHub!
-
-```
+MIT
