@@ -1,0 +1,12 @@
+{
+ "best_epoch": 30,
+ "epochs": 30,
+ "hard_negatives": 21756,
+ "parameters": 217229,
+ "train_minutes": 67.3,
+ "nms_iou": 0.3,
+ "val_AP50": 0.925816644575014,
+ "score_threshold": 0.800425112247467,
+ "vote_iou": 0.5,
+ "note": "thresholds re-selected on validation with `airdet calibrate` after box voting was added"
+}

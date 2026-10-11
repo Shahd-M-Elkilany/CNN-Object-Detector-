@@ -1,8 +1,8 @@
-tensorflow
-numpy
-opencv-python
-matplotlib
-scikit-learn
-pandas
-tqdm
-gradio
+# Runtime dependencies (same list as pyproject.toml; `pip install -e .` is the usual route).
+# Results in the README were produced with Python 3.13, TensorFlow 2.21, NumPy 2.x on CPU.
+tensorflow>=2.16
+numpy>=1.26
+opencv-python-headless>=4.8
+matplotlib>=3.8
+pyyaml>=6.0
+tqdm>=4.66
