@@ -1,6 +1,6 @@
 # Airplane detection with a from-scratch fully-convolutional CNN
 
-[![CI](https://github.com/Shahd-M-Elkilany/CNN-Object-Detector-/actions/workflows/ci.yml/badge.svg)](https://github.com/Shahd-M-Elkilany/CNN-Object-Detector-/actions/workflows/ci.yml)
+[![CI](https://github.com/Shahd-M-Elkilany/CNN-Object-Detector/actions/workflows/ci.yml/badge.svg)](https://github.com/Shahd-M-Elkilany/CNN-Object-Detector/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.16%2B-orange)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -113,8 +113,8 @@ and better-spread scores (the best validation threshold moves from 0.995 to 0.80
 ## Quick start
 
 ```bash
-git clone https://github.com/Shahd-M-Elkilany/CNN-Object-Detector-.git
-cd CNN-Object-Detector-
+git clone https://github.com/Shahd-M-Elkilany/CNN-Object-Detector.git
+cd CNN-Object-Detector
 pip install -e .            # add ".[dev]" for tests, ".[demo]" for the Gradio app
 
 airdet predict path/to/image_or_folder      # uses the released model in models/
