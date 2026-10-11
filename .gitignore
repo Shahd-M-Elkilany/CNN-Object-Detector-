@@ -1,9 +1,18 @@
-# Ignore trained models and heavy files
-artifacts/
-*.h5
-*.keras
+# data and experiment outputs (the released model in models/ is tracked)
+data/raw
+runs/
+predictions/
 
-# Ignore temporary files
+# python
 __pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+build/
+dist/
+
+# notebooks / OS
 .ipynb_checkpoints/
 .DS_Store
