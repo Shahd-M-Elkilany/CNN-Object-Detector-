@@ -1,4 +1,4 @@
-# Model card — `airplane_fcn.keras`
+# Model card — `airplane_fcn.weights.h5`
 
 | | |
 |---|---|
@@ -9,7 +9,7 @@
 | Training data | 511 images / 1,877 airplanes from the Airplanes set of 1297rohit/RCNN (Apache-2.0) |
 | Initialisation | Random. No pretrained weights. |
 | Training | 30 epochs, AdamW, two rounds of hard-negative mining, seed 0, 67 min on 2 CPU cores |
-| Files | `airplane_fcn.keras` (weights), `airplane_fcn.yaml` (config incl. calibrated thresholds) |
+| Files | `airplane_fcn.weights.h5` (weights), `airplane_fcn.yaml` (config incl. calibrated thresholds) |
 | Licence | MIT |
 
 ## Performance
@@ -50,7 +50,7 @@ same dataset. Suitable for teaching, experimentation and as a starting point for
 ```bash
 airdet download
 airdet train --config configs/default.yaml --output-dir runs/main
-airdet evaluate --model runs/main/model.keras --split test
+airdet evaluate --model runs/main/model.weights.h5 --split test
 ```
 
 CPU training is multi-threaded and not bit-for-bit deterministic, so a re-run will land near, not exactly on,

@@ -8,7 +8,7 @@ any difference is caused by that component alone:
 * ``no_regression``  - the anchor itself is reported as the box
 * ``single_scale``   - no pyramid: the network only sees the original resolution
 
-Usage:  python scripts/run_ablations.py --model models/airplane_fcn.keras
+Usage:  python scripts/run_ablations.py --model models/airplane_fcn.weights.h5
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ VARIANTS = {
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--model", default="models/airplane_fcn.keras")
+    parser.add_argument("--model", default="models/airplane_fcn.weights.h5")
     parser.add_argument("--split", default="test")
     parser.add_argument("--out", default="results/ablations.json")
     args = parser.parse_args()

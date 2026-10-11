@@ -233,7 +233,7 @@ def fig_failures(detector: Detector, samples, out: Path, n: int = 4) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--model", default="models/airplane_fcn.keras")
+    parser.add_argument("--model", default="models/airplane_fcn.weights.h5")
     parser.add_argument("--results", default="results")
     parser.add_argument("--out", default="assets")
     parser.add_argument("--baseline-model", default="runs/baseline_v1.keras")

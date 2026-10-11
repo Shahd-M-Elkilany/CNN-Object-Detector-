@@ -17,7 +17,7 @@ CELLS: list[tuple[str, str]] = [
         """# Airplane detector - a guided tour
 
 This notebook walks through the detector one idea at a time, using the released model
-(`models/airplane_fcn.keras`). Run `airdet download` first; everything else is already in the repo.
+(`models/airplane_fcn.weights.h5`). Run `airdet download` first; everything else is already in the repo.
 
 1. the data and why object size matters
 2. what the network sees: one 40x40 window, one answer
@@ -43,7 +43,7 @@ from airplane_detector.sampling import PatchSampler, pyramid_scales
 from airplane_detector.train import load_split_samples, run_detector, to_results
 from airplane_detector.viz import draw_boxes, draw_evaluation, upscale
 
-detector = Detector.load("models/airplane_fcn.keras")
+detector = Detector.load("models/airplane_fcn.weights.h5")
 cfg = detector.cfg
 splits = load_split_samples(cfg)
 print({name: (len(s), "images,", sum(len(x.boxes) for x in s), "airplanes") for name, s in splits.items()})

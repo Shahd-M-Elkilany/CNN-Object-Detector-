@@ -67,11 +67,15 @@ def test_objectness_accuracy():
     assert float(objectness_accuracy(y_true, y_pred)) == pytest.approx(0.5)
 
 
-def test_save_and_load_roundtrip(model, tmp_path):
-    path = tmp_path / "m.keras"
-    model.save(path)
+def test_weights_roundtrip(model, tmp_path):
+    """The released format: weights only, architecture rebuilt from the config."""
+    path = tmp_path / "m.weights.h5"
+    model.save_weights(path)
     x = np.random.default_rng(2).uniform(0, 255, (1, 56, 56, 3)).astype(np.float32)
-    np.testing.assert_allclose(load_model(str(path))(x).numpy(), model(x).numpy(), atol=1e-5)
+    restored = load_model(str(path), Config(widths=(4, 8, 8, 16), dropout=0.0))
+    np.testing.assert_allclose(restored(x).numpy(), model(x).numpy(), atol=1e-5)
+    with pytest.raises(ValueError):
+        load_model(str(path))
 
 
 def test_one_training_step_reduces_loss():

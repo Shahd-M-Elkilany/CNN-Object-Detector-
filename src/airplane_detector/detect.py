@@ -84,12 +84,15 @@ class Detector:
     # ------------------------------------------------------------ loading
     @classmethod
     def load(cls, model_path: str | Path, config_path: str | Path | None = None) -> Detector:
-        """Load ``<name>.keras`` together with its sibling ``<name>.yaml``."""
+        """Load ``<name>.weights.h5`` together with its sibling ``<name>.yaml``."""
         from .model import load_model
 
         model_path = Path(model_path)
-        config_path = Path(config_path) if config_path else model_path.with_suffix(".yaml")
-        return cls(load_model(str(model_path)), Config.from_yaml(config_path))
+        if config_path is None:
+            stem = model_path.name.removesuffix(".weights.h5").removesuffix(".keras")
+            config_path = model_path.with_name(stem + ".yaml")
+        cfg = Config.from_yaml(config_path)
+        return cls(load_model(str(model_path), cfg), cfg)
 
     # ------------------------------------------------------------ network
     def forward(self, level: np.ndarray) -> np.ndarray:

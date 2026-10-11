@@ -104,13 +104,15 @@ def test_real_network_runs_on_odd_sized_images(cfg):
         assert np.all(np.diff(det.scores) <= 1e-6), "detections are sorted by score"
 
 
-def test_load_reads_model_and_sibling_config(cfg, tmp_path):
+def test_load_reads_weights_and_sibling_config(cfg, tmp_path):
     model = build_model(cfg)
-    model.save(tmp_path / "net.keras")
+    model.save_weights(tmp_path / "net.weights.h5")
     cfg.score_threshold = 0.77
     cfg.to_yaml(tmp_path / "net.yaml")
-    detector = Detector.load(tmp_path / "net.keras")
+    detector = Detector.load(tmp_path / "net.weights.h5")
     assert detector.cfg.score_threshold == 0.77 and detector.cfg.widths == cfg.widths
+    x = np.zeros((1, 40, 40, 3), np.float32)
+    np.testing.assert_allclose(detector.model(x).numpy(), model(x).numpy(), atol=1e-6)
 
 
 def test_merge_votes_and_can_be_disabled(cfg):

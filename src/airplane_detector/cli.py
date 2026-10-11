@@ -2,8 +2,8 @@
 
 airdet download                      fetch the dataset
 airdet train --config configs/default.yaml
-airdet evaluate --model models/airplane_fcn.keras --split test
-airdet predict  --model models/airplane_fcn.keras path/to/image_or_folder
+airdet evaluate --model models/airplane_fcn.weights.h5 --split test
+airdet predict  --model models/airplane_fcn.weights.h5 path/to/image_or_folder
 airdet baseline                      train + evaluate the original v1 pipeline
 """
 
@@ -97,7 +97,9 @@ def cmd_calibrate(args) -> None:
     result = calibrate(detector, load_split_samples(cfg)["val"], cfg, progress=not args.quiet)
     cfg.nms_iou, cfg.vote_iou = float(result["nms_iou"]), float(result["vote_iou"])
     cfg.score_threshold = float(result["score_threshold"])
-    cfg.to_yaml(Path(args.model).with_suffix(".yaml"))
+    model_path = Path(args.model)
+    stem = model_path.name.removesuffix(".weights.h5").removesuffix(".keras")
+    cfg.to_yaml(model_path.with_name(stem + ".yaml"))
     print(json.dumps(result))
 
 
@@ -186,7 +188,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_train)
 
     p = sub.add_parser("evaluate", help="evaluate a trained detector on a split")
-    p.add_argument("--model", default="models/airplane_fcn.keras")
+    p.add_argument("--model", default="models/airplane_fcn.weights.h5")
     p.add_argument("--split", default="test", choices=["train", "val", "test"])
     p.add_argument("--data-dir")
     p.add_argument("--out", help="write the full report to this JSON file")
@@ -196,13 +198,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_evaluate)
 
     p = sub.add_parser("calibrate", help="re-select NMS, box voting and score threshold on validation")
-    p.add_argument("--model", default="models/airplane_fcn.keras")
+    p.add_argument("--model", default="models/airplane_fcn.weights.h5")
     p.add_argument("--quiet", action="store_true")
     p.set_defaults(func=cmd_calibrate)
 
     p = sub.add_parser("predict", help="detect airplanes in an image or a folder of images")
     p.add_argument("source")
-    p.add_argument("--model", default="models/airplane_fcn.keras")
+    p.add_argument("--model", default="models/airplane_fcn.weights.h5")
     p.add_argument("--out", default="predictions")
     p.add_argument("--threshold", type=float, help="score threshold (default: calibrated value)")
     p.set_defaults(func=cmd_predict)

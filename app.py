@@ -8,7 +8,7 @@ import gradio as gr
 from airplane_detector.detect import Detector
 from airplane_detector.viz import draw_detections
 
-MODEL_PATH = "models/airplane_fcn.keras"
+MODEL_PATH = "models/airplane_fcn.weights.h5"
 detector = Detector.load(MODEL_PATH)
 
 

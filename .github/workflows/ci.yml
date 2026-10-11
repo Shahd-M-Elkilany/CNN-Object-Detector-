@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.12"]
+        python-version: ["3.10", "3.12"]  # 3.10 resolves an older Keras, which guards weight-file portability
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,7 +33,7 @@ jobs:
           python - <<'PY'
           import numpy as np
           from airplane_detector.detect import Detector
-          detector = Detector.load("models/airplane_fcn.keras")
+          detector = Detector.load("models/airplane_fcn.weights.h5")
           det = detector.detect(np.zeros((256, 256, 3), np.uint8), score_threshold=detector.cfg.score_threshold)
           print("parameters:", detector.model.count_params(), "| detections on a blank image:", len(det))
           assert len(det) == 0

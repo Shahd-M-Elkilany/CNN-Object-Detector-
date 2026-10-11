@@ -33,7 +33,8 @@ model selection or threshold tuning.
   large ≥ 45 px **0.965** (170).
 - One test image is a boneyard scene with 206 airplanes, 37 % of all test objects. Without it the model scores
   AP@0.5 0.964 and F1 0.924 on the remaining 109 images, so that scene pulls the headline number down, not up.
-- Model: 217,229 parameters, 2.7 MB. Training: 67 minutes on 2 CPU cores. Inference: 0.44 s per 256×256 tile on the same 2 cores (16 pyramid levels).
+- Model: 217,229 parameters, 0.9 MB of weights. Training: 67 minutes on 2 CPU cores. Inference: 0.44 s per 256×256
+  tile on the same 2 cores (16 pyramid levels).
 
 <p align="center"><img src="assets/pr_curve.png" width="520" alt="Precision-recall curves of v1 and v2 on the test split"></p>
 
@@ -125,7 +126,7 @@ airdet predict path/to/image_or_folder      # uses the released model in models/
 import cv2
 from airplane_detector.detect import Detector
 
-detector = Detector.load("models/airplane_fcn.keras")
+detector = Detector.load("models/airplane_fcn.weights.h5")
 image = cv2.imread("scene.jpg")
 result = detector.detect(image, score_threshold=detector.cfg.score_threshold)
 print(result.boxes, result.scores)          # [x1, y1, x2, y2] in pixels

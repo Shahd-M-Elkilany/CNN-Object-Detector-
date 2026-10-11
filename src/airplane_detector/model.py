@@ -89,6 +89,18 @@ def objectness_accuracy(y_true, y_pred):
     return tf.reduce_mean(tf.cast(hit, tf.float32))
 
 
-def load_model(path: str) -> tf.keras.Model:
-    """Load a saved detector for inference (no optimizer / loss state)."""
-    return tf.keras.models.load_model(path, compile=False)
+def load_model(path: str, cfg: Config | None = None) -> tf.keras.Model:
+    """Load a detector for inference.
+
+    ``*.weights.h5`` (the released format) holds only the weights: the network
+    is rebuilt from ``cfg`` and the weights are loaded into it. This keeps the
+    file readable across Keras versions, which whole-model ``.keras`` archives
+    are not. A ``.keras`` archive is still accepted for convenience.
+    """
+    if str(path).endswith(".keras"):
+        return tf.keras.models.load_model(path, compile=False)
+    if cfg is None:
+        raise ValueError("a Config is required to rebuild the network for a weights file")
+    model = build_model(cfg)
+    model.load_weights(path)
+    return model

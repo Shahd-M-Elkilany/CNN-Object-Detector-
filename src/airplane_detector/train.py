@@ -171,7 +171,7 @@ def train(cfg: Config, progress: bool = True) -> dict:
     cfg.nms_iou = float(calibration["nms_iou"])
     cfg.vote_iou = float(calibration["vote_iou"])
     cfg.score_threshold = float(calibration["score_threshold"])
-    model.save(out_dir / "model.keras")
+    model.save_weights(out_dir / "model.weights.h5")
     cfg.to_yaml(out_dir / "model.yaml")
     summary = {
         "best_epoch": best["epoch"],
